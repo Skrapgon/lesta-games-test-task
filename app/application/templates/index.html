@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LestaGames Test Task</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+    <script>
+        let textId = null;
+        let offset = 0;
+        const limit = 50;
+        let curPage = 1;
+
+        async function updatePageNumber() {
+            document.getElementById("page-number").textContent = `Page: ${curPage}`;
+        }
+
+        async function getWordsData(url) {
+            const response = await fetch(url, {
+                method: "GET"
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Request Error: ${response.status}`);
+            }
+            
+            return await response.json();
+        }
+
+        async function uploadFile(event) {
+            event.preventDefault();
+            const fileInput = document.getElementById("file");
+            const file = fileInput.files[0];
+
+            if (!file || file.type !== "text/plain") {
+                alert("Please select a text file.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const response = await fetch("/api/texts/", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.id) {
+                textId = data.id;
+            }
+
+            const wordsData = await getWordsData(`/api/texts/${textId}/words/?offset=${offset}&limit=${limit}`);
+            renderTable(wordsData || []);
+        }
+
+        async function changePage(direction) {
+            if (offset + direction * limit < 0) offset = 0;
+            else{
+                offset += direction * limit;
+                curPage += direction;
+            }
+
+            if (!textId) return;
+
+            const data = await getWordsData(`/api/texts/${textId}/words/?offset=${offset}&limit=${limit}`);
+            if (!data.length) return;
+            renderTable(data || []);
+            
+        }
+
+        function renderTable(data) {
+            updatePageNumber();
+            
+            const tableBody = document.getElementById("data-table-body");
+            tableBody.innerHTML = "";
+
+            data.forEach((row, index) => {
+                const tr = document.createElement("tr");
+                Object.values(row).forEach(val => {
+                    const td = document.createElement("td");
+                    td.textContent = val;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Load text file</h1>
+    <form id="upload-form" onsubmit="uploadFile(event)">
+        <input type="file" id="file" name="file" accept=".txt" required>
+        <button type="submit">Load</button>
+    </form>
+
+    <h2>Results</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>word</th>
+                <th>cf</th>
+                <th>idf</th>
+            </tr>
+        </thead>
+        <tbody id="data-table-body">
+            <tr><td colspan="3">Upload the file to display the data</td></tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top: 10px;">
+        <button onclick="changePage(-1)">Previous</button>
+        <div id="page-number"></div>
+        <button onclick="changePage(1)">Next</button>
+    </div>
+</body>
+</html>
