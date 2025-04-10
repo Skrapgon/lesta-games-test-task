@@ -11,15 +11,10 @@ router = APIRouter(
     tags=['texts'],
 )
 
-class WordResponse(BaseModel):
-    word: str
-    idf: float
-
 class DocResponse(BaseModel):
     id: int
     text_str: str
     length: int
-    words: List[WordResponse]
     
 class WordStat(BaseModel):
     word: str
@@ -43,24 +38,22 @@ async def add_text(file: UploadFile = File(None)):
             id=doc.id,
             text_str=doc.text,
             length=doc.length,
-            words=[WordResponse(word=w.word, idf=w.idf) for w in doc.words]
         )
 
-
-@router.get('/{doc_id}', response_model=DocResponse)
-def get_text(doc_id: int = Path(..., description='Text ID')):
+@router.get('/', response_model=List[DocResponse])
+def get_texts():
     with SessionLocal() as db:
-        doc = db.query(Doc).filter_by(id=doc_id).first()
-        if not doc:
-            raise HTTPException(status_code=404, detail='Document is not found')
-        return DocResponse(
-            id=doc.id,
-            text_str=doc.text,
-            length=doc.length,
-            words=[WordResponse(word=w.word, idf=w.idf) for w in doc.words]
-        )
+        docs = db.query(Doc)
+        return [
+            DocResponse(
+                id=row.id,
+                text_str=row.text,
+                length=row.length,
+            )
+            for row in docs.all()
+        ]
 
-@router.get('/{doc_id}/words', response_model=List[WordStat])
+@router.get('/{doc_id}/', response_model=List[WordStat])
 def get_words_stat(
     doc_id: int = Path(..., description='Text ID'),
     offset: int = Query(0, ge=0, description='Offset from the beginning'),
