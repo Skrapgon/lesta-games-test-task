@@ -5,5 +5,5 @@ def get_text_length(text: str):
     return len(text_words)
 
 def split_text(text: str):
-    text_words = re.findall(r'\b\w+\b', text, re.UNICODE)
+    text_words = re.findall(r'\b\w+\b', text.lower(), re.UNICODE)
     return text_words

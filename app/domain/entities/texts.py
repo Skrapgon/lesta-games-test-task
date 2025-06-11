@@ -1,14 +1,16 @@
 from sqlalchemy import Integer, String, Text, Float, ForeignKey, Column
-from sqlalchemy.orm import DeclarativeBase, relationship, mapped_column
+from sqlalchemy.orm import relationship, mapped_column
+from sqlalchemy.dialects.postgresql import UUID
 
-class Base(DeclarativeBase):
-    pass
+from uuid import uuid4
+
+from infra.base import Base
 
 class Doc(Base):
     __tablename__ = 'docs'
     __allow_unmapped__ = True
     
-    id: int = mapped_column(Integer, primary_key=True)
+    id: UUID = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     text: str = mapped_column(Text)
     length: int = mapped_column(Integer, default=0)
     
@@ -18,7 +20,7 @@ class Word(Base):
     __tablename__ = 'words'
     __allow_unmapped__ = True
     
-    id: int = mapped_column(Integer, primary_key=True)
+    id: UUID = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     word: str = mapped_column(String, unique=True)
     idf: float = mapped_column(Float, default=0.0)
 
