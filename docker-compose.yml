@@ -13,9 +13,10 @@ services:
       - .env
     depends_on:
       - db
+      - redis
 
   db:
-    image: postgres:15
+    image: postgres:17
     container_name: postgres_db
     restart: always
     volumes:
@@ -28,6 +29,17 @@ services:
       - backend
     expose:
       - ${POSTGRES_PORT}
+
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
+    restart: always
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+    expose:
+      - ${REDIS_PORT}
 
   nginx:
     image: nginx:alpine
@@ -43,6 +55,7 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   backend:

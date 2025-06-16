@@ -1,5 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from infra.database import get_db
 from core.version import version
 
 router = APIRouter(
@@ -16,5 +19,5 @@ def get_version():
     return {'version': version}
 
 @router.get('/metrics')
-def get_metrics():
+def get_metrics(db: AsyncSession = Depends(get_db)):
     ...
