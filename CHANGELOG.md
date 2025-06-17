@@ -41,3 +41,6 @@
     * Изменения в `default.conf` для корректной работы Nginx
     * Добавление `nginx/nginx.conf` для корректной работы Nginx
     * Добавление в `docker-compose.yml` тома, соответствующего `nginx/nginx.conf`
+
+5. Версия 1.2.2
+    * Добавление в эндпоинт `/api/info/metrics` для timestamp обработки в случае отсутствия файлов в БД

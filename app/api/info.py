@@ -50,10 +50,10 @@ async def get_metrics(db: AsyncSession = Depends(get_db)):
     
     return Metrics(
         files_processed=doc_count,
-        min_time_processed=min_time,
-        max_time_processed=max_time,
-        avg_time_processed=avg_time,
-        latest_file_processed_timestamp=last_created_time.timestamp() if last_created_time else 0,
-        avg_words_per_file=int(avg_doc_length),
+        min_time_processed=min_time if min_time else 0.0,
+        max_time_processed=max_time if max_time else 0.0,
+        avg_time_processed=avg_time if avg_time else 0.0,
+        latest_file_processed_timestamp=last_created_time.timestamp() if last_created_time else 0.0,
+        avg_words_per_file=int(avg_doc_length) if avg_doc_length else 0,
         avg_files_per_user=doc_count // user_count if user_count > 0 else 0
     )
