@@ -31,9 +31,7 @@ def create_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     return encoded_jwt
 
 def create_access_token(subject: str) -> str:
-    return create_token(
-        data={'sub': subject}
-    )
+    return create_token(data={'sub': subject})
     
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/auth/login') 
 

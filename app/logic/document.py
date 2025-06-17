@@ -6,6 +6,7 @@ from sqlalchemy import desc, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from logic.huffman import encode, get_huffman_code
 from infra.models import Document, DocumentStatistic
 from logic.text_utils import get_text_length, split_text
 
@@ -13,7 +14,9 @@ async def create_doc(db: AsyncSession, user_id: str, doc_name: str, text_str: st
     start_time = time.monotonic()
     
     words_count = get_text_length(text_str)
-    doc = Document(name=doc_name, text=text_str, length=words_count, author_id=user_id)
+    huffman = encode(text_str, get_huffman_code(text_str))
+    
+    doc = Document(name=doc_name, text=text_str, length=words_count, author_id=user_id, huffman=huffman)
     
     db.add(doc)
     await db.flush()

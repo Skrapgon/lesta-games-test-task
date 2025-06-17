@@ -6,8 +6,8 @@ credentials_exception = HTTPException(
     headers={"WWW-Authenticate": "Bearer"},
 )
 
-document_404 = HTTPException(status_code=404, detail='Document not found')
+document_404 = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Document not found')
 
-collection_404 = HTTPException(status_code=404, detail='Collection not found')
+collection_404 = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Collection not found')
 
-access_denied_403 = HTTPException(status_code=403, detail='Access denied')
+access_denied_403 = HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Access denied')

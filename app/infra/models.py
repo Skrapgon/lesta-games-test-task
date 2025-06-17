@@ -26,6 +26,7 @@ class Document(Base):
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String)
     text: Mapped[str] = mapped_column(Text)
+    huffman: Mapped[str] = mapped_column(String, nullable=False)
     length: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=datetime.datetime.now(datetime.UTC))
     process_time: Mapped[float] = mapped_column(Float, nullable=True)

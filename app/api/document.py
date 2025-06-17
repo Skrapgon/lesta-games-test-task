@@ -4,9 +4,10 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID as Uuid
 
+from schema.huffman import Huffman
 from infra.database import get_db
 from auth.auth import get_current_user
-from infra.models import *
+from infra.models import User
 from logic.collection import delete_doc_from_collection
 from schema.document import Doc, DocContent, DocStat, WordDocStat
 from logic.document import create_doc, delete_doc, get_doc_by_id, get_doc_stat, get_docs_by_user
@@ -23,8 +24,13 @@ async def create_document(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
     ):
+    '''Добавление документа текущему пользователя'''
+    
     if not file:
         raise HTTPException(status_code=400, detail='File not provided')
+    
+    if not file.filename.endswith('.txt'):
+        raise HTTPException(status_code=400, detail='Invalid file extension. Valid only *.txt')
     
     text_bytes = await file.read()
     if not text_bytes:
@@ -32,7 +38,7 @@ async def create_document(
 
     text = text_bytes.decode('utf-8')
     
-    doc = await create_doc(db, user.id, file.filename, text)
+    doc = await create_doc(db, user.id, file.filename.removesuffix('.txt'), text)
     return Doc(
         id=doc.id,
         doc_name=doc.name
@@ -40,6 +46,8 @@ async def create_document(
 
 @router.get('/', response_model=list[Doc])
 async def get_documents(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    '''Вывод списка всех документов текущего пользователя'''
+    
     docs = await get_docs_by_user(db, user.id)
     return [
         Doc(
@@ -55,6 +63,8 @@ async def get_document(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
     ):
+    '''Вывод содержимого указанного документа текущего пользователя'''
+    
     doc = await get_doc_by_id(db, doc_id)
     if not doc:
         raise document_404
@@ -69,6 +79,8 @@ async def delete_document(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
     ):
+    '''Удаление указанного документа текущего пользователя'''
+    
     doc = await get_doc_by_id(db, doc_id)
     if not doc:
         raise document_404
@@ -88,6 +100,10 @@ async def get_statistic(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
     ):
+    '''Вывод статистики по указанному документу текущего пользователя:
+    первые limit слов и их частота (tf) с начальным смещением offset,
+    упорядоченные по убыванию частоты'''
+    
     doc = await get_doc_by_id(db, doc_id)
     if not doc:
         raise document_404
@@ -105,3 +121,20 @@ async def get_statistic(
             for stat in stats
         ]
     )
+    
+@router.get('/{doc_id}/huffman', response_model=Huffman)
+async def get_huffman(
+    doc_id: Annotated[Uuid, Path(..., description='Document ID')],
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+    ):
+    '''Представление содержимого документа в виде кода Хаффма.\n
+    Оценка алгоритма. Сложность по памяти: O(n + L_bits). Сложность по времени: O(L + n log(n))'''
+    
+    doc = await get_doc_by_id(db, doc_id)
+    if not doc:
+        raise document_404
+    if doc.author_id != user.id:
+        raise access_denied_403
+    
+    return Huffman(encoded_content=doc.huffman)

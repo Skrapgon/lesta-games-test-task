@@ -25,6 +25,8 @@ async def create_collection(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
     ):
+    '''Создание новой коллекции с названием name для текущего пользователя'''
+    
     collection = await create_coll(db, user.id, name.name)
     return Collect(
         id=collection.id,
@@ -33,6 +35,8 @@ async def create_collection(
 
 @router.get('/', response_model=list[Collect])
 async def get_collections(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    '''Вывод всех коллекций текущего пользователя'''
+    
     collections = await get_colls(db, user.id)
     return [
         Collect(
@@ -48,6 +52,8 @@ async def get_collection(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
     ):
+    '''Вывод содержимого указанной коллекции текущего пользователя'''
+    
     collection = await get_coll(db, collection_id)
     if not collection:
         raise collection_404
@@ -72,6 +78,8 @@ async def delete_collection(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
     ):
+    '''Удаление указанной коллекции текущего пользователя'''
+    
     collection = await get_coll(db, collection_id)
     if not collection:
         raise collection_404
@@ -88,6 +96,8 @@ async def add_document_to_collection(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
     ):
+    '''Добавление указанного документа в указанную коллекцию текущего пользователя'''
+    
     collection = await get_coll(db, collection_id)
     if not collection:
         raise collection_404
@@ -120,6 +130,8 @@ async def delete_document_from_collection(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
     ):
+    '''Удаление указанного документа из указанной коллекции текущего пользователя'''
+    
     collection = await get_coll(db, collection_id)
     if not collection:
         raise collection_404
@@ -153,6 +165,10 @@ async def get_statistic(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
     ):
+    '''Вывод статистики по указанной коллекции текущего пользователя:
+    первые limit слов, их частота (tf) и обратная частота (idf) с начальным смещением offset,
+    упорядоченные по убыванию tf'''
+    
     collection = await get_coll(db, collection_id)
     if not collection:
         raise collection_404

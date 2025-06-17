@@ -20,6 +20,7 @@ async def register(
     user_form: UserSchema,
     db: AsyncSession = Depends(get_db)
     ):
+    '''Регистрация нового пользователя'''
     
     result = await db.execute(select(User).where(User.username == user_form.username))
     existing_user = result.scalar_one_or_none()
@@ -40,6 +41,7 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db)
     ):
+    '''Авторизация пользователя'''
     
     result = await db.execute(select(User).where(User.username == form_data.username))
     user = result.scalar_one_or_none()
@@ -54,6 +56,7 @@ async def logout(
     token: str = Depends(oauth2_scheme),
     user: User = Depends(get_current_user)
     ):
+    '''Завершение сессии текущего пользователя'''
     
     result = await add_blacklist_token(token)
     if result:
@@ -67,6 +70,7 @@ async def change_password(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
     ):
+    '''Смена пароля текущего пользователя'''
     
     if not check_password(password_body.old_password, user.password):
         raise HTTPException(status_code=403, detail='Wrong old password')
@@ -82,6 +86,8 @@ async def delete_user(
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db)
 ):
+    '''Удаление текущего пользователя (в том числе будут удалены его документы и коллекции)'''
+    
     result = await add_blacklist_token(token)
     if result:
         await db.delete(current_user)
